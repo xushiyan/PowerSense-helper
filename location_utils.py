@@ -1,3 +1,4 @@
+import sys
 import csv
 from os.path import join as pathjoin, dirname, abspath, splitext, basename
 from array import array
@@ -17,7 +18,7 @@ def gen_loc_file(filein: str, dir: str = None) -> str:
 
     filename, ext = splitext(basename(filein))
     if not dir:
-        dir = dirname(abspath(__name__))
+        dir = dirname(abspath(__file__))
     fileout = pathjoin(dir, '_'.join([filename, 'location' + ext]))
     with open(fileout, 'wt') as fout:
         writer = csv.writer(fout)
@@ -82,6 +83,11 @@ def get_loc_by_time_range(loc_file: str, start: float, end: float) -> list:
 
 
 if __name__ == '__main__':
-    print(gen_loc_file('commonwealth.csv'))
-    print(is_chrono_sorted('commonwealth_location.csv'))
-    print(get_loc_by_time_range('commonwealth_location.csv', 1501240257, 1501240276))
+    try:
+        datafile = sys.argv[1]
+    except IndexError:
+        datafile = pathjoin(dirname(abspath(__file__)), 'commonwealth.csv')
+    loc_file = gen_loc_file(datafile)
+    print('generated location data file at\n', loc_file)
+    print('loc_file is sorted chronologically: ', is_chrono_sorted(loc_file))
+    print(get_loc_by_time_range(loc_file, 1501240257, 1501240276))

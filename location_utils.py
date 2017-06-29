@@ -1,9 +1,10 @@
 import csv
 from os.path import join as pathjoin, dirname, abspath, splitext, basename
+from array import array
 from bisect import bisect_left, bisect_right
 
 
-def gen_loc_file(filein: str, dir: str=None) -> str:
+def gen_loc_file(filein: str, dir: str = None) -> str:
     """
     Generate location data file.
 
@@ -17,7 +18,7 @@ def gen_loc_file(filein: str, dir: str=None) -> str:
     filename, ext = splitext(basename(filein))
     if not dir:
         dir = dirname(abspath(__name__))
-    fileout = pathjoin(dir, '_'.join([filename, 'location'+ext]))
+    fileout = pathjoin(dir, '_'.join([filename, 'location' + ext]))
     with open(fileout, 'wt') as fout:
         writer = csv.writer(fout)
         with open(filein) as fin:
@@ -35,17 +36,16 @@ def gen_loc_file(filein: str, dir: str=None) -> str:
                         writer.writerow(r)
                         prev = r
                     else:
-                        # TODO: impl. external sort if too many records misplaced
+                        # TODO: numpy.memmap for external sort if file too large
                         print(prev, '>=', r)
     return fileout
 
 
 def is_chrono_sorted(loc_file: str) -> bool:
-
     def file_read_gen(loc_file):
         with open(loc_file) as fin:
             reader = csv.reader(fin)
-            next(reader, None) # skip header
+            next(reader)  # skip header
             prev_t = float('-inf')
             for row in reader:
                 t = float(row[0])
@@ -57,18 +57,31 @@ def is_chrono_sorted(loc_file: str) -> bool:
 
 def get_loc_by_time_range(loc_file: str, start: float, end: float) -> list:
 
-    if not is_chrono_sorted(loc_file):
-        raise ValueError('loc data is not sorted by timestamp!')
+    assert is_chrono_sorted(loc_file), 'loc_file should be sorted by timestamp.'
 
     if start > end:
         return []
 
-    # TODO: impl. external sort if file too large
-    ans = []
+    # TODO: numpy.memmap if file too large
 
-    return ans
+    t = array('d')
+    with open(loc_file) as fin:
+        reader = csv.reader(fin)
+        next(reader)  # skip header
+        for row in reader:
+            t.append(float(row[0]))
+
+    l = bisect_left(t, start)
+    r = bisect_right(t, end)
+    print(l, r)
+
+    fin = open(loc_file)
+    reader = csv.reader(fin)
+    fin.seek(l+1)
+    return [next(reader) for _ in range(r-l+1)]
 
 
 if __name__ == '__main__':
     print(gen_loc_file('commonwealth.csv'))
     print(is_chrono_sorted('commonwealth_location.csv'))
+    print(get_loc_by_time_range('commonwealth_location.csv', 1501240257, 1501240276))

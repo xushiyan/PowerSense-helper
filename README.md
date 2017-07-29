@@ -2,7 +2,7 @@
 
 > Tested with Python 3.6
 
-## Example
+## Examples
 ```python
-python location_utils.py commonwealth.csv
+PYTHONPATH=. python examples/gen_time_latlon.py 
 ```

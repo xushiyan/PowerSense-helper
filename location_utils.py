@@ -1,6 +1,6 @@
-import sys
+import os
 import csv
-from os.path import join as pathjoin, dirname, abspath, splitext, basename
+from os.path import join as pathjoin, splitext, basename
 from array import array
 from bisect import bisect_left, bisect_right
 
@@ -18,7 +18,7 @@ def gen_loc_file(filein: str, dir: str = None) -> str:
 
     filename, ext = splitext(basename(filein))
     if not dir:
-        dir = dirname(abspath(__file__))
+        dir = os.getcwd()
     fileout = pathjoin(dir, '_'.join([filename, 'location' + ext]))
     with open(fileout, 'wt') as fout:
         writer = csv.writer(fout)
@@ -53,10 +53,10 @@ def is_chrono_sorted(loc_file: str) -> bool:
                 yield prev_t <= t
                 prev_t = t
 
-    return all(is_sort for is_sort in file_read_gen(loc_file))
+    return all(file_read_gen(loc_file))
 
 
-def get_loc_by_time_range(loc_file: str, start: float, end: float) -> list:
+def get_loc_by_time_range(loc_file: str, start=float('-inf'), end=float('inf')) -> list:
 
     assert is_chrono_sorted(loc_file), 'loc_file should be sorted by timestamp.'
 

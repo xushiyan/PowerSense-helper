@@ -4,5 +4,5 @@
 
 ## Examples
 ```python
-PYTHONPATH=. python examples/gen_time_latlon.py 
+PYTHONPATH=. python examples/gen_time_latlon.py
 ```
